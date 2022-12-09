@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "build-dev": "webpack --config ./webpack.dev.config.js --stats verbose"
+  },
+  "dependencies": {
+    "@lit/localize": "^0.11.4",
+    "@types/w3c-web-serial": "^1.0.3",
+    "lit": "^2.4.1",
+    "source-map-loader": "^4.0.1",
+    "ts-loader": "^9.4.2"
+  },
+  "devDependencies": {
+    "@lit/localize-tools": "^0.6.5",
+    "typescript": "^4.9.3",
+    "webpack-cli": "^5.0.1"
+  }
+}

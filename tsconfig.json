@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "outDir": "./build",
+        "target": "es6",
+        "noImplicitReturns": true,
+        "noImplicitAny": true,
+        "module": "CommonJs",
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "noUnusedLocals": false,
+        "noEmitHelpers": false,
+        "noEmitOnError": true,
+        "strictNullChecks": false,
+        "pretty": true,
+        "sourceMap": true,
+        "declaration": true,
+        "isolatedModules": false,
+        "useDefineForClassFields": false // To get Lit to play nice with class fields
+    },
+    "include": ["./src/**/*", "./src/main.ts"]
+  }
