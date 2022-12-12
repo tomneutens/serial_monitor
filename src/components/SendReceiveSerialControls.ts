@@ -2,8 +2,8 @@ import { LitElement, css, html, CSSResult, CSSResultGroup, nothing } from "lit";
 import {customElement, property, state} from 'lit/decorators.js';
 import { msg } from '@lit/localize';
 import SerialMonitorConfig from "../state/SerialMonitorConfig";
-import WebSerialConnection from "../utils/WebSerialConnection";
 import FileIOController from "../utils/FileIOController";
+import WebSerialConnection from "../utils/WebSerialConnection";
 
 
 enum ConnectionState {
@@ -89,7 +89,6 @@ class SendReceiveSerialControls extends LitElement {
     config: SerialMonitorConfig
 
     private currentState: ConnectionState = ConnectionState.DISC
-    private webSerialConnection: WebSerialConnection
     private radixMap: {[index: string]: number} = {
         "bin": 2,
         "oct": 8,
@@ -134,12 +133,23 @@ class SendReceiveSerialControls extends LitElement {
         }
     }
 
+    serialConnection: WebSerialConnection
+
     constructor(){
         super();
-        this.webSerialConnection = new WebSerialConnection()
-        this.webSerialConnection.addSerialDisconnectEventHandler(() => this.handleDisconnect());
-        this.webSerialConnection.addSerialDataEventHandler((byte: number) => this.handleReceiveData(byte))
-        this.webSerialConnection.setupWebSerial()
+        /*this.serialConnected = false
+        this.openPort = null
+        this.serialDataEventHandlers = new Array<Function>()
+        this.serialDisconnectEventHandlers = new Array<Function>()
+        this.serialConnectEventHandlers = new Array<Function>()
+        this.sendQueue = new Array<number>()*/
+
+        this.serialConnection = new WebSerialConnection();
+
+        this.serialConnection.addSerialDisconnectEventHandler(() => this.handleDisconnect());
+        this.serialConnection.addSerialConnectEventHandler(() => this.handleConnect())
+        this.serialConnection.addSerialDataEventHandler((byte: number) => this.handleReceiveData(byte))
+        this.serialConnection.setupWebSerial()
     }
 
     serialReadBufferPrint(value:string){
@@ -154,31 +164,18 @@ class SendReceiveSerialControls extends LitElement {
         this.datalog.push("")
     }
 
-    private hasWebSerialSupport(){
-        if ("serial" in navigator){
-            return true
-        } else {
-            window.alert("Webserial not supported by your browser. Consider using chrome or edge.");
-            return false
-        }
-    }
+
 
     private async handleConnect(){
         console.log("connect")
-        if (!this.hasWebSerialSupport()){
-            return
-        }
         if (this.currentState === ConnectionState.DISC || this.currentState === ConnectionState.DISC_DATA){
-            let isConnected =  await this.webSerialConnection.connect(parseInt(this.config.getBaudRate()))
-            if (isConnected){
-                this.connectPossible = false
-                this.disconnectPossible = true
-                this.sendPossible = true
-                this.downloadPossible = false
-                this.textInputPossible = true
-                this.datalog = new Array<string>()
-                this.currentState =  ConnectionState.CON
-            }
+            this.connectPossible = false
+            this.disconnectPossible = true
+            this.sendPossible = true
+            this.downloadPossible = false
+            this.textInputPossible = true
+            this.datalog = new Array<string>()
+            this.currentState =  ConnectionState.CON
         } else {
             console.log("Trying to connect but already connected?!?")
         }
@@ -207,6 +204,7 @@ class SendReceiveSerialControls extends LitElement {
     }
 
     handleReceiveData(byte:number){
+        console.log(byte);
         if (this.currentState === ConnectionState.CON || this.currentState === ConnectionState.CON_DATA){
             this.downloadPossible = true
             this.processData(byte)
@@ -242,7 +240,7 @@ class SendReceiveSerialControls extends LitElement {
         }
         console.log(valueArray)
         console.log(`Writing value: ${value}`)
-        valueArray.forEach(value => this.webSerialConnection.sendByte(value))
+        valueArray.forEach(value => this.serialConnection.sendByte(value))
     }
 
     private handleDownload(){
@@ -252,13 +250,157 @@ class SendReceiveSerialControls extends LitElement {
 
     protected render() {
         return html`
-            <button @click=${this.handleConnect} ?disabled="${!this.connectPossible}">${msg("Connect")}</button>
-            <button @click=${this.handleDisconnect } ?disabled=${!this.disconnectPossible}>${msg("Disconnect")}</button>
+            <button @click=${async () => {this.serialConnection.connect(parseInt(this.config.getBaudRate()))}} ?disabled="${!this.connectPossible}">${msg("Connect")}</button>
+            <button @click=${() => this.serialConnection.disconnect() } ?disabled=${!this.disconnectPossible}>${msg("Disconnect")}</button>
             <textarea ?disabled=${!this.textInputPossible} rows="1" @input=${(e:any) => { this.inputData = e.target.value }} placeholder="${msg("Enter the data you want to send to the device!")}"></textarea>
             <button @click=${ this.handleSend } ?disabled=${!this.sendPossible}>${msg("Send")}</button>
             <button @click=${this.handleDownload } class="fas fa-download" ?disabled=${!this.downloadPossible}>${msg("Download csv")}</button>
         `
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*private baudRate: number
+    private openPort: SerialPort|null
+    private serialConnected: boolean
+    private serialDataEventHandlers: Array<Function>
+    private serialDisconnectEventHandlers: Array<Function>
+    private serialConnectEventHandlers: Array<Function>
+    private sendQueue: Array<number>
+  
+
+    addSerialDataEventHandler(handler: Function){
+        this.serialDataEventHandlers.push(handler)
+    }
+
+    addSerialDisconnectEventHandler(handler: Function){
+        this.serialDisconnectEventHandlers.push(handler)
+    }
+
+    addSerialConnectEventHandler(handler: Function){
+        this.serialConnectEventHandlers.push(handler)
+    }
+
+    sendByte(byte: number){
+        this.sendQueue.push(byte)
+    }
+
+    private notifyDataHandlers(data: number){
+        this.serialDataEventHandlers.forEach(handler => handler(data))
+    }
+
+    private notifyConnectHandlers(){
+        this.serialConnectEventHandlers.forEach(handler => handler())
+    }
+
+    private notifyDisconnectHandlers() {
+        this.serialDisconnectEventHandlers.forEach(handler => handler())
+    }
+
+    disconnect() {
+        this.serialConnected = false;
+    }
+
+    async connect(baudRate: number) {
+        if (!this.hasWebSerialSupport()){
+            return
+        }
+        this.baudRate = baudRate;
+        const usbVendorId = 0Xd3e0;
+        let stopped = false
+        try {
+            let port = await navigator.serial.requestPort({ filters: [{ usbVendorId }]})
+            // asynchronously start listening to port
+            port.open({baudRate: this.baudRate}).then(async () => {
+                this.notifyConnectHandlers()
+                this.serialConnected = true;
+                while (port.readable && port.writable && !stopped) {
+                    const reader:ReadableStreamDefaultReader<Uint8Array> = port.readable.getReader();
+                    const writer:WritableStreamDefaultWriter<Uint8Array> = port.writable.getWriter();
+                    this.openPort = port;
+                    try {
+                    while (true && !stopped) {
+                        const { value, done } = await reader.read();
+                        if (!this.serialConnected || done) {
+                            reader.cancel();
+                            writer.releaseLock();
+                            // |reader| has been canceled.
+                            console.log("Reader has been closed");
+                            stopped = true;
+                        }
+                        if (value){
+                            value.forEach((element) => { this.notifyDataHandlers(element); });
+                        }
+                        
+                        if (this.sendQueue.length > 0){
+                            let nextOnQueue = this.sendQueue.shift() as number
+                            let data = new Uint8Array([nextOnQueue]);
+                            await writer.write(data);
+                        }
+                    }
+                    } catch (error) {
+                    // Handle |error|…
+                    this.openPort = null;  
+                    this.serialConnected = false;              
+                    } finally {
+                    reader.releaseLock();
+                    this.notifyDisconnectHandlers()
+                    }
+                }
+                port.close();    
+            })
+        } catch (error) {
+            console.log(error)
+            this.serialConnected = false;
+            this.notifyDisconnectHandlers()
+        }
+    }
+
+    setupWebSerial(){
+        if (navigator.serial){
+            navigator.serial.addEventListener('connect', (e:any) => {
+                // Connect to `e.target` or add it to a list of available ports.
+                console.log("Serial device connected: " + e.target)
+            });
+            
+            navigator.serial.addEventListener('disconnect', (e:any) => {
+                console.log("Serial device disconnected: " + e.target)
+                this.notifyDisconnectHandlers();
+            });
+            
+            navigator.serial.getPorts().then((ports:SerialPort[]) => {
+            // Initialize the list of available ports with `ports` on page load.
+                console.log(`The available ports are ${ports}`)
+            });
+        }
+    
+    }*/
+
+
+
+
 }
 
 declare global {

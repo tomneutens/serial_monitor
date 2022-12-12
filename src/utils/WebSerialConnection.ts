@@ -6,6 +6,8 @@ class WebSerialConnection {
     private serialDisconnectEventHandlers: Array<Function>
     private serialConnectEventHandlers: Array<Function>
     private sendQueue: Array<number>
+  
+
     constructor(){
         this.serialConnected = false
         this.openPort = null
@@ -43,56 +45,72 @@ class WebSerialConnection {
         this.serialDisconnectEventHandlers.forEach(handler => handler())
     }
 
-    async connect(baudRate: number):Promise<boolean>{
+    private hasWebSerialSupport(){
+        if ("serial" in navigator){
+            return true
+        } else {
+            window.alert("Webserial not supported by your browser. Consider using chrome or edge.");
+            return false
+        }
+    }
+
+    disconnect() {
+        this.serialConnected = false;
+    }
+
+    async connect(baudRate: number) {
+        if (!this.hasWebSerialSupport()){
+            return
+        }
         this.baudRate = baudRate;
-        let connection:boolean = true;
         const usbVendorId = 0Xd3e0;
         let stopped = false
-        await navigator.serial.requestPort({ filters: [{ usbVendorId }]}).then( async (port:SerialPort) => {
-            // Connect to `port` or add it to the list of available ports.
-            await port.open({baudRate: this.baudRate});
-            this.notifyConnectHandlers()
-            this.serialConnected = true;
-            while (port.readable && port.writable && !stopped) {
-                const reader:ReadableStreamDefaultReader<Uint8Array> = port.readable.getReader();
-                const writer:WritableStreamDefaultWriter<Uint8Array> = port.writable.getWriter();
-                this.openPort = port;
-                try {
-                  while (true && !stopped) {
-                    const { value, done } = await reader.read();
-                    if (!this.serialConnected || done) {
-                        this.notifyDisconnectHandlers()
-                        reader.cancel();
-                        writer.releaseLock();
-                        // |reader| has been canceled.
-                        console.log("Reader has been closed");
-                        stopped = true;
+        try {
+            let port = await navigator.serial.requestPort({ filters: [{ usbVendorId }]})
+            // asynchronously start listening to port
+            port.open({baudRate: this.baudRate}).then(async () => {
+                this.notifyConnectHandlers()
+                this.serialConnected = true;
+                while (port.readable && port.writable && !stopped) {
+                    const reader:ReadableStreamDefaultReader<Uint8Array> = port.readable.getReader();
+                    const writer:WritableStreamDefaultWriter<Uint8Array> = port.writable.getWriter();
+                    this.openPort = port;
+                    try {
+                    while (true && !stopped) {
+                        const { value, done } = await reader.read();
+                        if (!this.serialConnected || done) {
+                            reader.cancel();
+                            writer.releaseLock();
+                            // |reader| has been canceled.
+                            console.log("Reader has been closed");
+                            stopped = true;
+                        }
+                        if (value){
+                            value.forEach((element) => { this.notifyDataHandlers(element); });
+                        }
+                        
+                        if (this.sendQueue.length > 0){
+                            let nextOnQueue = this.sendQueue.shift() as number
+                            let data = new Uint8Array([nextOnQueue]);
+                            await writer.write(data);
+                        }
                     }
-                    if (value){
-                        value.forEach((element) => { this.notifyDataHandlers(element); });
+                    } catch (error) {
+                    // Handle |error|…
+                    this.openPort = null;  
+                    this.serialConnected = false;              
+                    } finally {
+                    reader.releaseLock();
+                    this.notifyDisconnectHandlers()
                     }
-                    
-                    if (this.sendQueue.length > 0){
-                        let nextOnQueue = this.sendQueue.shift() as number
-                        let data = new Uint8Array([nextOnQueue]);
-                        await writer.write(data);
-                    }
-                  }
-                } catch (error) {
-                  // Handle |error|…
-                  this.openPort = null;                
-                } finally {
-                  reader.releaseLock();
-                  this.notifyDisconnectHandlers()
                 }
-              }
-              port.close();    
-        }).catch((e:any) => {
-            // The user didn't select a port.
-            connection=false;
-            console.log("Error")
-        });
-        return connection;
+                port.close();    
+            })
+        } catch (error) {
+            console.log(error)
+            this.serialConnected = false;
+            this.notifyDisconnectHandlers()
+        }
     }
 
     setupWebSerial(){
@@ -114,6 +132,7 @@ class WebSerialConnection {
         }
     
     }
+
 }
 
 export default WebSerialConnection
