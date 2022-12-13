@@ -1,6 +1,107 @@
 # serial_monitor
 A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.
 
+### Description
+
+This package offers a native web component for communicating to serial devices using WebSerial. It allows users to both send and receive byte and string data to/from the serial device. The serial monitor is compatible with popular microcontroller platforms like Arduino. The native web component can be embedded into any html page.
+
+![A screenshot of the component](/doc/img/editor.png)
+
+### Usage
+
+The component can both be used in plain html or integrated into a typescript frontend application using lit-element.
+
+#### Plain html
+Link the main.js file in your html and start using the serial-montitor tag.
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Online Arduino compatible serial monitor using WebSerial</title>
+        <script type="module" src="./dist/main.js"></script>
+        <style>
+            body {
+                width: 100vw;
+                height: 100vh;
+                margin:0;
+            }
+        </style>
+    </head>
+    <body>
+        <serial-monitor serial-port-filters='[{"usbVendorId":54240}]'></serial-monitor>
+    </body>
+</html> 
+```
+
+The serial-port-filters attribute accepts a JSON encoded array of [SerialPortFilter](https://wicg.github.io/serial/#serialportfilter-dictionary) objects.
+
+#### Typescript
+
+```javascript
+import SerialMonitor from "@tomneutens/serial-monitor/src/components/SerialMonitor.ts"
+```
+
+### Layout
+
+The component automatically fills its container. Colors and fonts are set using the CSS variables defined by our theme:
+
+```css
+--component-foreground-color: var(--theme-foreground-color, #819F3D);
+--component-foreground-color-hover: var(--theme-foreground-color-hover, #8BAB42);
+--component-foreground-color-text: var(--theme-foreground-color-text, #819F3D);
+--component-foreground-color-textarea-disabled: var(--theme-foreground-color-textarea-disabled, gray);
+--component-foreground-color-disabled: var(--theme-disabled-foreground-color, black);
+--component-foreground-color-button: var(--theme-foreground-color-button, black);
+
+--component-background-color: var(--theme-background-color, #242424);
+--component-background-color-text: var(--theme-background-color-text, #242424);
+--component-background-color-button: var(--theme-background-color-button, #819F3D);
+--component-background-color-disabled: var(--theme-background-color-disabled, gray);
+
+--component-accent-color: var(--theme-accent-color, #9FBA63);
+--component-accent-color-neutral: var(--theme-accent-color, #20270F);
+
+--component-base-font-size: var(--theme-base-font-size, 1rem);
+--component-base-font-family: var(--theme-base-font-family, sans-serif);
+```
+
+Override these theme settings by defining the variable prefixed with '--theme'.
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Online Arduino compatible serial monitor using WebSerial</title>
+        <script type="module" src="./dist/main.js"></script>
+        <style>
+            body {
+                width: 100vw;
+                height: 100vh;
+                margin:0;
+            }
+
+            serial-monitor {
+                --theme-foreground-color: red;
+                --theme-background-color: white;
+                --theme-background-color-button: red;
+                --theme-background-color-disabled: pink;
+                --theme-accent-color: orange;
+            }
+        </style>
+    </head>
+    <body>
+        <serial-monitor serial-port-filters='[{"usbVendorId":54240}]'></serial-monitor>
+    </body>
+</html> 
+```
+
+![A screenshot of the component](/doc/img/editor_themed.png)
+
+### Browser support
+
+At the time of writing, the support for the Web Serial API is limited. Check [https://caniuse.com/web-serial](https://caniuse.com/web-serial) for latest support information.
+
 
 ### License info
 

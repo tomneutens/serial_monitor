@@ -17,7 +17,7 @@ class SerialMonitor extends LitElement {
     static styles?: CSSResultGroup = css`
         :host {
             --component-foreground-color: var(--theme-foreground-color, #819F3D);
-            --component-foreground-color-hover: var(--theme-foreground-color, #8BAB42);
+            --component-foreground-color-hover: var(--theme-foreground-color-hover, #8BAB42);
             --component-foreground-color-text: var(--theme-foreground-color-text, #819F3D);
             --component-foreground-color-textarea-disabled: var(--theme-foreground-color-textarea-disabled, gray);
             --component-foreground-color-disabled: var(--theme-disabled-foreground-color, black);
@@ -29,7 +29,7 @@ class SerialMonitor extends LitElement {
             --component-background-color-disabled: var(--theme-background-color-disabled, gray);
 
             --component-accent-color: var(--theme-accent-color, #9FBA63);
-            --component-accent-color-neutral: var(--theme-accent-color, #20270F);
+            --component-accent-color-neutral: var(--theme-accent-color-neutral, #20270F);
 
             --component-base-font-size: var(--theme-base-font-size, 1rem);
             --component-base-font-family: var(--theme-base-font-family, sans-serif);

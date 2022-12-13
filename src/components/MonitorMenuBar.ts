@@ -29,8 +29,8 @@ class MonitorMenubar extends LitElement {
             box-sizing: border-box;
             font-size: var(--component-base-font-size);
             font-family: var(--component-base-font-family);
-            border-bottom-color: var(--component-accent-color);
             border-bottom: 1px solid;
+            border-color: var(--component-accent-color);
         }
 
         :host > span {

@@ -13,5 +13,32 @@
     "@lit/localize-tools": "^0.6.5",
     "typescript": "^4.9.3",
     "webpack-cli": "^5.0.1"
-  }
+  },
+  "name": "@tomneutens/serial_monitor",
+  "description": "A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.",
+  "version": "1.0.0",
+  "main": "src/main.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomneutens/serial_monitor.git"
+  },
+  "keywords": [
+    "dwenguino",
+    "arduino",
+    "serial monitor",
+    "webserial",
+    "microcontroller",
+    "web",
+    "components",
+    "lit"
+  ],
+  "author": "Tom Neutens",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tomneutens/serial_monitor/issues"
+  },
+  "homepage": "https://github.com/tomneutens/serial_monitor#readme"
 }
