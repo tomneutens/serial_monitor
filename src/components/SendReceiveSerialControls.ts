@@ -1,3 +1,8 @@
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
+
 import { LitElement, css, html, CSSResult, CSSResultGroup, nothing } from "lit";
 import {customElement, property, state} from 'lit/decorators.js';
 import { msg } from '@lit/localize';
@@ -37,10 +42,11 @@ class SendReceiveSerialControls extends LitElement {
             vertical-align: middle;
             padding-left: 5px;
             rows: 1;
-            background-color: var(--component-foreground-color-text);
+            background-color: var(--component-background-color);
             color: var(--component-foreground-color);
-            border: none;
+            border: 1px solid white;
             resize: none;
+            border-radius: 3px;
         }
 
         :host > textarea::placeholder {
@@ -49,17 +55,30 @@ class SendReceiveSerialControls extends LitElement {
             left: 0;
             transform: translate(0, -50%);
             padding-left: 5px;
+            color: var(--component-foreground-color-textarea-disabled);
         }
 
         :host > * {
             margin: 5px 0;
-            background-color: var(--component-foreground-color);
-            color: var(--component-foreground-color-text);
             font-size: var(--component-base-font-size);
         }
 
-        :host > *:disabled {
-            background-color: var(--component-disabled-foreground-color);
+        :host > button {
+            background-color: var(--component-background-color-button);
+            color: var(--component-foreground-color-button);
+            text-decoration: none;
+            border-radius: 3px;
+            border: none;
+        }
+
+        :host > button:disabled {
+            background-color: var(--component-background-color-disabled);
+            color: var(--component-foreground-color-disabled)
+        }
+
+        :host > textarea:disabled {
+            background-color: var(--component-background-color);
+            color: var(--component-foreground-color-textarea-disabled)
         }
     `
 
@@ -95,6 +114,12 @@ class SendReceiveSerialControls extends LitElement {
         "dec": 10,
         "hex": 16
     }
+    private radixPrefix: {[index: string]: string} = {
+        "bin": "0b",
+        "oct": "0",
+        "dec": "",
+        "hex": "0x"
+    }
     private readBuffer:number[] = [];
     private byteInterpreter:any = {
         "string": (value:number) => {
@@ -106,7 +131,7 @@ class SendReceiveSerialControls extends LitElement {
             }
         },
         "byte": (value:number) => {
-            this.serialReadBufferPrint(value.toString(this.radixMap[this.config.getDisplayType()]));
+            this.serialReadBufferPrint(this.radixPrefix[this.config.getDisplayType()] + value.toString(this.radixMap[this.config.getDisplayType()]));
             this.serialReadBufferPrintLn();
         },
         "int": (value:number) => {  // Javascript uses 32 bit integers, Arduino 16 bit integers => padding required
@@ -167,7 +192,6 @@ class SendReceiveSerialControls extends LitElement {
 
 
     private async handleConnect(){
-        console.log("connect")
         if (this.currentState === ConnectionState.DISC || this.currentState === ConnectionState.DISC_DATA){
             this.connectPossible = false
             this.disconnectPossible = true
@@ -177,12 +201,11 @@ class SendReceiveSerialControls extends LitElement {
             this.datalog = new Array<string>()
             this.currentState =  ConnectionState.CON
         } else {
-            console.log("Trying to connect but already connected?!?")
+            console.error("Trying to connect but already connected?!?")
         }
     }
 
     private handleDisconnect(){
-        console.log("disconnect")
         if (this.currentState === ConnectionState.CON){
             this.connectPossible = true
             this.disconnectPossible = false
@@ -199,12 +222,11 @@ class SendReceiveSerialControls extends LitElement {
             this.textInputPossible = false
             this.currentState = ConnectionState.DISC_DATA
         } else {
-            console.log("Trying to disconnect but not in a connected state?!?")
+            console.error("Trying to disconnect but not in a connected state?!?")
         }
     }
 
     handleReceiveData(byte:number){
-        console.log(byte);
         if (this.currentState === ConnectionState.CON || this.currentState === ConnectionState.CON_DATA){
             this.downloadPossible = true
             this.processData(byte)
@@ -212,7 +234,7 @@ class SendReceiveSerialControls extends LitElement {
             let e = new CustomEvent("new-data-received", {bubbles: false, composed: true, detail: {data: this.datalog }})
             this.dispatchEvent(e)
         } else {
-            console.log("Received data in disconnected state?!?")
+            console.error("Received data in disconnected state?!?")
         }
     }
 
@@ -222,7 +244,6 @@ class SendReceiveSerialControls extends LitElement {
     }
 
     private handleSend(event: any){
-        console.log(`send: ${ this.inputData }`)
         this.writeSerialValue(this.inputData)
     }
 
@@ -238,167 +259,30 @@ class SendReceiveSerialControls extends LitElement {
         } else { // When sent as string => send as array of characters with newline at end.
             valueArray = `${value}\n`.split("").map((str) => { return str.charCodeAt(0)});
         }
-        console.log(valueArray)
-        console.log(`Writing value: ${value}`)
         valueArray.forEach(value => this.serialConnection.sendByte(value))
     }
 
     private handleDownload(){
-        console.log("download")
         FileIOController.download("data.csv", this.datalog.join(";"))
     }
 
     protected render() {
         return html`
-            <button @click=${async () => {this.serialConnection.connect(parseInt(this.config.getBaudRate()))}} ?disabled="${!this.connectPossible}">${msg("Connect")}</button>
+            <button @click=${async () => {
+                this.serialConnection.connect(
+                    parseInt(this.config.getBaudRate()), 
+                    this.config.getSerialPortFilters())
+                .catch(e => {
+                    const ce = new CustomEvent("open-port-failed", {bubbles: true, composed: true, detail: {error: e }})
+                    this.dispatchEvent(ce)
+                })}
+            } ?disabled="${!this.connectPossible}">${msg("Connect")}</button>
             <button @click=${() => this.serialConnection.disconnect() } ?disabled=${!this.disconnectPossible}>${msg("Disconnect")}</button>
             <textarea ?disabled=${!this.textInputPossible} rows="1" @input=${(e:any) => { this.inputData = e.target.value }} placeholder="${msg("Enter the data you want to send to the device!")}"></textarea>
             <button @click=${ this.handleSend } ?disabled=${!this.sendPossible}>${msg("Send")}</button>
             <button @click=${this.handleDownload } class="fas fa-download" ?disabled=${!this.downloadPossible}>${msg("Download csv")}</button>
         `
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*private baudRate: number
-    private openPort: SerialPort|null
-    private serialConnected: boolean
-    private serialDataEventHandlers: Array<Function>
-    private serialDisconnectEventHandlers: Array<Function>
-    private serialConnectEventHandlers: Array<Function>
-    private sendQueue: Array<number>
-  
-
-    addSerialDataEventHandler(handler: Function){
-        this.serialDataEventHandlers.push(handler)
-    }
-
-    addSerialDisconnectEventHandler(handler: Function){
-        this.serialDisconnectEventHandlers.push(handler)
-    }
-
-    addSerialConnectEventHandler(handler: Function){
-        this.serialConnectEventHandlers.push(handler)
-    }
-
-    sendByte(byte: number){
-        this.sendQueue.push(byte)
-    }
-
-    private notifyDataHandlers(data: number){
-        this.serialDataEventHandlers.forEach(handler => handler(data))
-    }
-
-    private notifyConnectHandlers(){
-        this.serialConnectEventHandlers.forEach(handler => handler())
-    }
-
-    private notifyDisconnectHandlers() {
-        this.serialDisconnectEventHandlers.forEach(handler => handler())
-    }
-
-    disconnect() {
-        this.serialConnected = false;
-    }
-
-    async connect(baudRate: number) {
-        if (!this.hasWebSerialSupport()){
-            return
-        }
-        this.baudRate = baudRate;
-        const usbVendorId = 0Xd3e0;
-        let stopped = false
-        try {
-            let port = await navigator.serial.requestPort({ filters: [{ usbVendorId }]})
-            // asynchronously start listening to port
-            port.open({baudRate: this.baudRate}).then(async () => {
-                this.notifyConnectHandlers()
-                this.serialConnected = true;
-                while (port.readable && port.writable && !stopped) {
-                    const reader:ReadableStreamDefaultReader<Uint8Array> = port.readable.getReader();
-                    const writer:WritableStreamDefaultWriter<Uint8Array> = port.writable.getWriter();
-                    this.openPort = port;
-                    try {
-                    while (true && !stopped) {
-                        const { value, done } = await reader.read();
-                        if (!this.serialConnected || done) {
-                            reader.cancel();
-                            writer.releaseLock();
-                            // |reader| has been canceled.
-                            console.log("Reader has been closed");
-                            stopped = true;
-                        }
-                        if (value){
-                            value.forEach((element) => { this.notifyDataHandlers(element); });
-                        }
-                        
-                        if (this.sendQueue.length > 0){
-                            let nextOnQueue = this.sendQueue.shift() as number
-                            let data = new Uint8Array([nextOnQueue]);
-                            await writer.write(data);
-                        }
-                    }
-                    } catch (error) {
-                    // Handle |error|…
-                    this.openPort = null;  
-                    this.serialConnected = false;              
-                    } finally {
-                    reader.releaseLock();
-                    this.notifyDisconnectHandlers()
-                    }
-                }
-                port.close();    
-            })
-        } catch (error) {
-            console.log(error)
-            this.serialConnected = false;
-            this.notifyDisconnectHandlers()
-        }
-    }
-
-    setupWebSerial(){
-        if (navigator.serial){
-            navigator.serial.addEventListener('connect', (e:any) => {
-                // Connect to `e.target` or add it to a list of available ports.
-                console.log("Serial device connected: " + e.target)
-            });
-            
-            navigator.serial.addEventListener('disconnect', (e:any) => {
-                console.log("Serial device disconnected: " + e.target)
-                this.notifyDisconnectHandlers();
-            });
-            
-            navigator.serial.getPorts().then((ports:SerialPort[]) => {
-            // Initialize the list of available ports with `ports` on page load.
-                console.log(`The available ports are ${ports}`)
-            });
-        }
-    
-    }*/
-
-
 
 
 }

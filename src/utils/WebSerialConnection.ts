@@ -1,3 +1,10 @@
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
+
+import OpenSerialPortError from "../errors/OpenSerialPortError"
+
 class WebSerialConnection {
     private baudRate: number
     private openPort: SerialPort|null
@@ -58,15 +65,14 @@ class WebSerialConnection {
         this.serialConnected = false;
     }
 
-    async connect(baudRate: number) {
+    async connect(baudRate: number, filters: SerialPortFilter[] = []) {
         if (!this.hasWebSerialSupport()){
             return
         }
         this.baudRate = baudRate;
-        const usbVendorId = 0Xd3e0;
         let stopped = false
         try {
-            let port = await navigator.serial.requestPort({ filters: [{ usbVendorId }]})
+            let port = await navigator.serial.requestPort({ filters: filters })
             // asynchronously start listening to port
             port.open({baudRate: this.baudRate}).then(async () => {
                 this.notifyConnectHandlers()
@@ -82,7 +88,6 @@ class WebSerialConnection {
                             reader.cancel();
                             writer.releaseLock();
                             // |reader| has been canceled.
-                            console.log("Reader has been closed");
                             stopped = true;
                         }
                         if (value){
@@ -105,9 +110,11 @@ class WebSerialConnection {
                     }
                 }
                 port.close();    
+            }).catch((error) => {
+                console.error(error);
             })
         } catch (error) {
-            console.log(error)
+            console.error(error)
             this.serialConnected = false;
             this.notifyDisconnectHandlers()
         }
@@ -116,18 +123,15 @@ class WebSerialConnection {
     setupWebSerial(){
         if (navigator.serial){
             navigator.serial.addEventListener('connect', (e:any) => {
-                // Connect to `e.target` or add it to a list of available ports.
-                console.log("Serial device connected: " + e.target)
+
             });
             
             navigator.serial.addEventListener('disconnect', (e:any) => {
-                console.log("Serial device disconnected: " + e.target)
                 this.notifyDisconnectHandlers();
             });
             
             navigator.serial.getPorts().then((ports:SerialPort[]) => {
-            // Initialize the list of available ports with `ports` on page load.
-                console.log(`The available ports are ${ports}`)
+
             });
         }
     

@@ -1,8 +1,14 @@
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
+
 import { LitElement, css, html, CSSResult, CSSResultGroup } from "lit";
 import {customElement, property} from 'lit/decorators.js';
 import { msg, str } from '@lit/localize'
 import "./LabeledDropdown";
-import SerialMonitorConfig from "../state/SerialMonitorConfig";
+import { SerialMonitorSetting, SerialMonitorConfig } from "../state/SerialMonitorConfig";
+
 
 
 @customElement("monitor-menubar")
@@ -66,33 +72,33 @@ class MonitorMenubar extends LitElement {
     protected render() {
         return html`
             <span>${this.labelText}</span>
-            <labeled-dropdown 
+            ${/*<labeled-dropdown 
                 id="baudRate" 
                 @dropdown-value-changed=${this.handleViewTypeSelect} 
                 labeltext="${msg("View:")}" 
                 options='${JSON.stringify(this.config.outputView)}'
-                selectedindex=${this.config.selectionIndex["outputView"]}>
-            </labeled-dropdown>
+                selectedindex=${this.config.selectionIndex[SerialMonitorSetting.VIEW]}>
+            </labeled-dropdown>*/""}
             <labeled-dropdown 
                 id="dataType" 
                 @dropdown-value-changed=${this.handleDataTypeSelect} 
                 labeltext="${msg("Data type:")}" 
                 options='${JSON.stringify(this.config.dataType)}'
-                selectedindex=${this.config.selectionIndex["dataType"]}>
+                selectedindex=${this.config.selectionIndex[SerialMonitorSetting.DATA_TYPE]}>
             </labeled-dropdown>
             <labeled-dropdown 
                 id="displayType" 
                 @dropdown-value-changed=${this.handleDisplayTypeSelect} 
                 labeltext="${msg("Display type:")}" 
                 options='${JSON.stringify(this.config.displayType)}'
-                selectedindex=${this.config.selectionIndex["displayType"]}>
+                selectedindex=${this.config.selectionIndex[SerialMonitorSetting.DISPLAY_TYPE]}>
             </labeled-dropdown>
             <labeled-dropdown 
                 id="baudRate" 
                 @dropdown-value-changed=${this.handleBaudRateSelect} 
                 labeltext="${msg("Baud rate:")}" 
                 options='${JSON.stringify(this.config.baudRate)}'
-                selectedindex=${this.config.selectionIndex["baudRate"]}>
+                selectedindex=${this.config.selectionIndex[SerialMonitorSetting.BAUD_RATE]}>
             </labeled-dropdown>
             
         `

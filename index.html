@@ -11,10 +11,12 @@
         <style>
             body {
                 width: 100vw;
+                height: 100vh;
+                margin:0;
             }
         </style>
     </head>
     <body>
-        <serial-monitor style="position:absolute; margin:1%; width: 98%; height: 98%;"></serial-monitor>
+        <serial-monitor serial-port-filters='[{"usbVendorId":54240}]'></serial-monitor>
     </body>
 </html> 

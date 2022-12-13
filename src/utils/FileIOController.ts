@@ -1,3 +1,8 @@
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
+
 class FileIOController {
     constructor() {
 

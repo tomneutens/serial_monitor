@@ -1,3 +1,7 @@
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
 import { LitElement, css, html, CSSResult, nothing } from "lit";
 import {customElement, property} from 'lit/decorators.js';
 
@@ -51,7 +55,6 @@ class LabeledDropdown extends LitElement {
 
     connectedCallback(): void {
         super.connectedCallback();
-        console.log(this.options)
     }
 
     protected render() {
