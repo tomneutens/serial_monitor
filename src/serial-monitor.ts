@@ -3,3 +3,6 @@
  */
 
 import "./components/SerialMonitor"
+import SerialMonitor from "./components/SerialMonitor"
+
+export default SerialMonitor

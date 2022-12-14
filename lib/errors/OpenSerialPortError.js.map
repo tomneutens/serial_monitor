@@ -1,0 +1,1 @@
+{"version":3,"file":"OpenSerialPortError.js","sourceRoot":"","sources":["../../src/errors/OpenSerialPortError.ts"],"names":[],"mappings":"AAAA;;GAEG;AAGH,MAAM,mBAAoB,SAAQ,KAAK;IACnC,YAAY,GAAW;QACnB,KAAK,CAAC,IAAI,CAAC,SAAS,CAAC;YACjB,KAAK,EAAE,6BAA6B;YACpC,OAAO,EAAE,GAAG;SACf,CAAC,CAAC,CAAA;IACP,CAAC;CACJ;AAED,eAAe,mBAAmB,CAAA"}

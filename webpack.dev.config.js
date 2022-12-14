@@ -1,8 +1,16 @@
-module.exports = {
+import path from "path"
+
+let settings = {
     mode: "development",
-    entry: "./src/main.ts",
+    target: "web",
+    entry: "./src/serial-monitor.ts",
     output: {
-      filename: "main.js",
+      path: path.resolve("./dist"),
+      filename: "serial-monitor.js",
+      library: "SerialMonitor",
+      libraryTarget: "umd",
+      globalObject: "this",
+      umdNamedDefine: true
     },
     // Enable sourcemaps for debugging webpack's output.
     devtool: "source-map",
@@ -13,9 +21,11 @@ module.exports = {
     module: {
       rules: [
         // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-        { test: /\.tsx?$/, loader: "ts-loader" },
+        { test: /\.tsx?$/, loader: "ts-loader", options: { "transpileOnly": true } },
         // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
         { test: /\.js$/, loader: "source-map-loader" },
       ],
     },
   };
+
+  export default settings

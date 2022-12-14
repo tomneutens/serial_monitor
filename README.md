@@ -7,9 +7,14 @@ This package offers a native web component for communicating to serial devices u
 
 ![A screenshot of the component](/doc/img/editor.png)
 
+
+### Install
+
+npm install @tomneutens/serial_monitor
+
 ### Usage
 
-The component can both be used in plain html or integrated into a typescript frontend application using lit-element.
+The component can both be used in plain html (built and bundled version) or integrated into a typescript frontend application using lit-element.
 
 #### Plain html
 Link the main.js file in your html and start using the serial-montitor tag.
@@ -19,7 +24,7 @@ Link the main.js file in your html and start using the serial-montitor tag.
 <html>
     <head>
         <title>Online Arduino compatible serial monitor using WebSerial</title>
-        <script type="module" src="./dist/main.js"></script>
+        <script type="module" src="node_modules/@tomneutens/serial_monitor/dist/serial-monitor.js"></script>
         <style>
             body {
                 width: 100vw;
@@ -38,8 +43,57 @@ The serial-port-filters attribute accepts a JSON encoded array of [SerialPortFil
 
 #### Typescript
 
+You can import the serial-monitor element for use in your lit template by importing "@tomneutens/serial_monitor".
+
 ```javascript
-import SerialMonitor from "@tomneutens/serial-monitor/src/components/SerialMonitor.ts"
+import "@tomneutens/serial_monitor";
+
+/**
+ * @author Tom Neutens <tomneutens@gmail.com>
+ */
+
+ import { LitElement, html } from "lit";
+ import {customElement} from 'lit/decorators.js';
+ 
+ @customElement("test-serial")
+ class TestSerial extends LitElement {
+
+    constructor(){
+        super()
+    }
+
+    protected render() {
+        return html`
+        <serial-monitor></serial-monitor>
+        `
+    }
+
+ }
+
+ declare global {
+    interface HTMLElementTagNameMap {
+        "test-serial": TestSerial;
+    }
+}
+
+export default TestSerial
+```
+
+I recomend bundeling your application using a tool like webpack to be able to use your component (here test-serial) in your html. These tools will perform the module resolution for your component and allow you to use it in the browser. The component will not work without bundling since browsers do not support full module resolution. This might change in the future with "import maps".
+
+If we assume you have bundled your application into the the dist/index.js file, the following example shows how to use the component.
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Online Arduino compatible serial monitor using WebSerial</title>
+        <script type="module" src="dist/index.js"></script>
+    </head>
+    <body>
+        <test-serial></test-serial>
+    </body>
+</html> 
 ```
 
 ### Layout
@@ -73,7 +127,7 @@ Override these theme settings by defining the variable prefixed with '--theme'.
 <html>
     <head>
         <title>Online Arduino compatible serial monitor using WebSerial</title>
-        <script type="module" src="./dist/main.js"></script>
+        <script type="module" src="node_modules/@tomneutens/serial_monitor/dist/serial-monitor.js"></script>
         <style>
             body {
                 width: 100vw;

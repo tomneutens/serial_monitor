@@ -1,0 +1,1 @@
+{"version":3,"file":"InvalidArgumentError.js","sourceRoot":"","sources":["../../src/errors/InvalidArgumentError.ts"],"names":[],"mappings":"AAAA;;GAEG;AAGH,MAAM,oBAAqB,SAAQ,KAAK;IACpC,YAAY,YAAoB,EAAE,cAAsB;QACpD,KAAK,CAAC,gBAAgB,YAAY,+CAA+C,cAAc,EAAE,CAAC,CAAA;IACtG,CAAC;CACJ;AAED,eAAe,oBAAoB,CAAA"}

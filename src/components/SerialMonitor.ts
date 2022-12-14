@@ -117,3 +117,5 @@ declare global {
 }
 
 export default SerialMonitor
+
+export { SerialMonitor }

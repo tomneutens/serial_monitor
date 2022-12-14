@@ -1,10 +1,10 @@
 {
     "compilerOptions": {
-        "outDir": "./build",
-        "target": "es6",
+        "outDir": "./lib",
+        "target": "ES2019",
         "noImplicitReturns": true,
         "noImplicitAny": true,
-        "module": "CommonJs",
+        "module": "ES2015",
         "moduleResolution": "node",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -16,8 +16,14 @@
         "pretty": true,
         "sourceMap": true,
         "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "typeRoots": [
+            "node_modules/@types"
+        ],
         "isolatedModules": false,
-        "useDefineForClassFields": false // To get Lit to play nice with class fields
+        "useDefineForClassFields": false, // To get Lit to play nice with class fields
+        "lib": ["es2015", "es2019", "dom"]
     },
-    "include": ["./src/**/*", "./src/main.ts"]
+    "include": ["./src/**/*"]
   }
