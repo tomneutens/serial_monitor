@@ -152,6 +152,11 @@ Override these theme settings by defining the variable prefixed with '--theme'.
 
 ![A screenshot of the component](/doc/img/editor_themed.png)
 
+
+### Localization
+
+We use the [lit localization library to translate the interface](https://lit.dev/docs/localization/overview/). 
+
 ### Browser support
 
 At the time of writing, the support for the Web Serial API is limited. Check [https://caniuse.com/web-serial](https://caniuse.com/web-serial) for latest support information.
