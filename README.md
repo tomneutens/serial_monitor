@@ -1,6 +1,8 @@
 # serial_monitor
 A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.
 
+See an example at [serialmonitor.org](serialmonitor.org)
+
 ### Description
 
 This package offers a native web component for communicating to serial devices using WebSerial. It allows users to both send and receive byte and string data to/from the serial device. The serial monitor is compatible with popular microcontroller platforms like Arduino. The native web component can be embedded into any html page.
