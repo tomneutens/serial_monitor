@@ -5,7 +5,8 @@
   },
   "files": [
     "dist/**/*",
-    "lib/**/*"
+    "lib/**/*",
+    "src/**/*"
   ],
   "dependencies": {
     "@lit/localize": "^0.11.4",
@@ -17,11 +18,12 @@
     "source-map-loader": "^4.0.1",
     "ts-loader": "^9.4.2",
     "typescript": "^4.9.3",
+    "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   },
   "name": "@tomneutens/serial_monitor",
   "description": "A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "main": "./lib/serial-monitor.js",
   "module": "./lib/serial-monitor.js",
