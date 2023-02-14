@@ -3,10 +3,10 @@ import path from "path"
 let settings = {
     mode: "development",
     target: "web",
-    entry: "./src/index.ts",
+    entry: "./src/serial-monitor.ts",
     output: {
       path: path.resolve("./dist"),
-      filename: "index.js",
+      filename: "serial-monitor.js",
       library: "SerialMonitor",
       libraryTarget: "umd",
       globalObject: "this",
