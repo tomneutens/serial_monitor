@@ -57,8 +57,8 @@ class SerialMonitorConfig {
         {labelText: msg("hex"), labelValue: DisplayTypeSetting.HEX}
     ]
     dataType: SettingsList<DataTypeSetting> = [
-        {labelText: msg("byte"), labelValue: DataTypeSetting.BYTE},
         {labelText: msg("string"), labelValue: DataTypeSetting.STRING},
+        {labelText: msg("byte"), labelValue: DataTypeSetting.BYTE},
     ]
     private rates = Object.values(BaudRateSetting) 
     baudRate: SettingsList<BaudRateSetting> = new Array<{labelText:string, labelValue:BaudRateSetting}> // init in constructor since no translations

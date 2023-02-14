@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build-dev": "webpack --config ./webpack.dev.config.js --stats verbose",
+    "build-dev": "webpack --config ./webpack.dev.config.js --watch --progress --stats verbose",
     "bundle": "tsc"
   },
   "files": [
@@ -12,11 +12,11 @@
     "lit": "^2.4.1"
   },
   "devDependencies": {
-    "@lit/localize-tools": "^0.6.5",
-    "typescript": "^4.9.3",
-    "webpack-cli": "^5.0.1",
+    "@lit/localize-tools": "^0.6.7",
+    "source-map-loader": "^4.0.1",
     "ts-loader": "^9.4.2",
-    "source-map-loader": "^4.0.1"
+    "typescript": "^4.9.3",
+    "webpack-cli": "^5.0.1"
   },
   "name": "@tomneutens/serial_monitor",
   "description": "A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.",

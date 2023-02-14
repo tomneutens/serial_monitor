@@ -124,6 +124,7 @@ class SendReceiveSerialControls extends LitElement {
     private byteInterpreter:any = {
         "string": (value:number) => {
             let strValue = String.fromCharCode(value);
+            if (strValue == "\r") return // Ignore carrige return
             if (strValue == "\n"){
                 this.serialReadBufferPrintLn();
             } else {
@@ -178,9 +179,10 @@ class SendReceiveSerialControls extends LitElement {
     }
 
     serialReadBufferPrint(value:string){
+        // If an entry in the data log exists, concat value to the current string
         if (this.datalog.length > 0){
             this.datalog[this.datalog.length-1] = this.datalog[this.datalog.length-1].concat(value)
-        } else {
+        } else { // Push the value to the datalog
             this.datalog.push(value)
         }
     }
@@ -263,7 +265,7 @@ class SendReceiveSerialControls extends LitElement {
     }
 
     private handleDownload(){
-        FileIOController.download("data.csv", this.datalog.join(";"))
+        FileIOController.download("data.csv", this.datalog.join("\n"))
     }
 
     protected render() {
