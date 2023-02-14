@@ -20,7 +20,7 @@
   },
   "name": "@tomneutens/serial_monitor",
   "description": "A web based serial monitor for communicating with serial devices (like Arduino). The library is based on native web components and uses the WebSerial API to communicate with the external device.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./lib/serial-monitor.js",
   "module": "./lib/serial-monitor.js",
