@@ -97,6 +97,7 @@ class SendReceiveSerialControls extends LitElement {
     @state()
     datalog: Array<string> = new Array<string>()
 
+
     @property({
         type: SerialMonitorConfig,
         converter: (value: any, type) => {
@@ -245,8 +246,9 @@ class SendReceiveSerialControls extends LitElement {
         return ""
     }
 
-    private handleSend(event: any){
+    private handleSend(){
         this.writeSerialValue(this.inputData)
+        this.inputData = ""
     }
 
     private writeSerialValue(value: string){
@@ -268,6 +270,16 @@ class SendReceiveSerialControls extends LitElement {
         FileIOController.download("data.csv", this.datalog.join("\n"))
     }
 
+    private handleInput(data: string){
+        if (data.charAt(data.length - 1) == "\n"){
+            this.inputData = this.inputData.trim()
+            this.handleSend()
+        }else{
+            this.inputData = data
+        }
+        
+    }
+
     protected render() {
         return html`
             <button @click=${async () => {
@@ -280,7 +292,7 @@ class SendReceiveSerialControls extends LitElement {
                 })}
             } ?disabled="${!this.connectPossible}">${msg("Connect")}</button>
             <button @click=${() => this.serialConnection.disconnect() } ?disabled=${!this.disconnectPossible}>${msg("Disconnect")}</button>
-            <textarea ?disabled=${!this.textInputPossible} rows="1" @input=${(e:any) => { this.inputData = e.target.value }} placeholder="${msg("Enter the data you want to send to the device!")}"></textarea>
+            <textarea ?disabled=${!this.textInputPossible} rows="1" @input=${(e:any) => { this.handleInput(e.target.value) }} .value=${this.inputData} placeholder="${msg("Enter the data you want to send to the device!")}"></textarea>
             <button @click=${ this.handleSend } ?disabled=${!this.sendPossible}>${msg("Send")}</button>
             <button @click=${this.handleDownload } class="fas fa-download" ?disabled=${!this.downloadPossible}>${msg("Download csv")}</button>
         `

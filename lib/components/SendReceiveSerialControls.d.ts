@@ -30,6 +30,7 @@ declare class SendReceiveSerialControls extends LitElement {
     private handleSend;
     private writeSerialValue;
     private handleDownload;
+    private handleInput;
     protected render(): import("lit-html").TemplateResult<1>;
 }
 declare global {
