@@ -23,6 +23,7 @@ class LineChartWrapper extends LitElement {
         display: flex;
         padding: 30px;
         overflow: hidden;
+        --line-color: var(--component-background-color-button);
       }
       #chartContainer {
         position: relative;
@@ -54,12 +55,12 @@ class LineChartWrapper extends LitElement {
     @property({
       type: String,
     })
-    lineColor: string = "rgb(255, 0, 0)"
+    lineColor: string = "rgb(0, 255, 0)"
 
     @property({
       type: String,
     })  
-    pointColor: string = "rgba(255, 0, 0)"
+    pointColor: string = "rgba(0, 255, 0)"
 
     // Get referenct to element using querySelector
     @query("#lineChart")
@@ -112,6 +113,9 @@ class LineChartWrapper extends LitElement {
 
     protected render() {
       if (this.chart){
+        let color = getComputedStyle(this).getPropertyValue('--line-color');
+        this.chart.data.datasets[0].borderColor = color
+        this.chart.data.datasets[0].backgroundColor = color
         this.chart.data.labels = this.chartData.map((_, i) => i);
         this.chart.data.datasets[0].data = this.chartData;
         this.chart.update();
