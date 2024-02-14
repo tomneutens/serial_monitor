@@ -6,6 +6,7 @@ import { LitElement, CSSResultGroup } from "lit";
 import "./MonitorMenuBar";
 import "./MonitorOutput";
 import "./SendReceiveSerialControls";
+import "./LineChartWrapper";
 import { SerialMonitorConfig } from "../state/SerialMonitorConfig";
 declare class SerialMonitor extends LitElement {
     static styles?: CSSResultGroup;

@@ -72,13 +72,13 @@ class MonitorMenubar extends LitElement {
     protected render() {
         return html`
             <span>${this.labelText}</span>
-            ${/*<labeled-dropdown 
-                id="baudRate" 
+            <labeled-dropdown 
+                id="viewType" 
                 @dropdown-value-changed=${this.handleViewTypeSelect} 
                 labeltext="${msg("View:")}" 
                 options='${JSON.stringify(this.config.outputView)}'
                 selectedindex=${this.config.selectionIndex[SerialMonitorSetting.VIEW]}>
-            </labeled-dropdown>*/""}
+            </labeled-dropdown>
             <labeled-dropdown 
                 id="dataType" 
                 @dropdown-value-changed=${this.handleDataTypeSelect} 

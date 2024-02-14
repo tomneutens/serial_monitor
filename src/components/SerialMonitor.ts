@@ -8,6 +8,7 @@ import {customElement, property, state} from 'lit/decorators.js';
 import "./MonitorMenuBar"
 import "./MonitorOutput"
 import "./SendReceiveSerialControls"
+import "./LineChartWrapper"
 import { msg } from '@lit/localize';
 import {SerialMonitorConfig, SerialMonitorSetting, ViewSetting } from "../state/SerialMonitorConfig";
 
@@ -103,7 +104,7 @@ class SerialMonitor extends LitElement {
             </monitor-menubar>
             ${ this.monitorConfig.getOutpuView() === ViewSetting.RAW 
                 ? html`<monitor-output lines=${this.output}></monitor-output>`
-                : html`<p>HAHA this view does not exist!</p>`}
+                : html`<line-chart-wrapper chartData=${JSON.stringify((JSON.parse(this.output).map((item: String) => Number(item)) as Array<Number>).slice(0,-1))}></line-chart-wrapper>`}
             
             <send-receive-serial-controls @new-data-received=${this.handleNewData} config=${JSON.stringify(this.monitorConfig)}></send-receive-serial-controls>
         `
