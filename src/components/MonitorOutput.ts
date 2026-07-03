@@ -12,17 +12,19 @@ class MonitorOutput extends LitElement {
     static styles?: CSSResultGroup = css`
     :host {
         display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
         flex-direction: column-reverse;
         align-items: stretch;
         overflow-x: hidden;
-        overflow-y: scroll;
+        overflow-y: auto;
         background-color: inherit;
         color: inherit;
         box-sizing: border-box;
-        padding: 5px;
-        margin-bottom: auto;
-        scrollbar-color: var(--component-foreground-color) var(--component-background-color);
+        padding: var(--component-space-sm);
+        scrollbar-color: var(--component-accent-color) var(--component-background-color);
         scrollbar-width: thin;
+        font-family: var(--component-mono-font-family);
     }
     :host::-webkit-scrollbar {
         width: 10px;
@@ -31,9 +33,9 @@ class MonitorOutput extends LitElement {
         background: var(--component-background-color);
       }
     :host::-webkit-scrollbar-thumb {
-        background-color: var(--component-foreground-color) ;
+        background-color: var(--component-accent-color);
         border-radius: 6px;
-        border: 3px solid var(--scrollbarBG);
+        border: 2px solid var(--component-background-color);
       }
 
     :host > div {
@@ -41,23 +43,27 @@ class MonitorOutput extends LitElement {
         background-color: inherit;
         color: inherit;
         box-sizing: border-box;
-        padding: 0 5px;
+        padding: 1px var(--component-space-sm);
         font-size: var(--component-base-font-size);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        line-height: 1.4;
     }
     `
 
     @property({
         type: Array<string>
     })
-    lines:Array<string>;
+    lines:Array<string> = [];
 
     constructor(){
         super();
     }
 
     protected render() {
+        // Render a non-mutating copy; the source array (shared with the chart/log) must not be reversed in place.
         return html`
-        ${this.lines?.reverse().map((line => {
+        ${this.lines?.slice().reverse().map((line => {
             return html`<div>${line}</div>`
         }))}
         `

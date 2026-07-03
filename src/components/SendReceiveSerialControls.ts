@@ -9,6 +9,7 @@ import { msg } from '@lit/localize';
 import SerialMonitorConfig from "../state/SerialMonitorConfig";
 import FileIOController from "../utils/FileIOController";
 import WebSerialConnection from "../utils/WebSerialConnection";
+import SerialDataInterpreter from "../utils/SerialDataInterpreter";
 
 
 enum ConnectionState {
@@ -24,61 +25,86 @@ class SendReceiveSerialControls extends LitElement {
         :host {
             display: flex;
             flex-direction: row;
-            gap: 5px;
+            align-items: center;
+            gap: var(--component-space-sm);
             width: 100%;
             background-color: var(--component-background-color);
             color: var(--component-foreground-color);
-            padding: 0 5px;
+            padding: var(--component-space-sm);
             box-sizing: border-box;
             font-size: var(--component-base-font-size);
             font-family: var(--component-base-font-family);
-            margin: 5px 0;
-            border-top: 1px solid;
-            border-color: var(--component-accent-color);
+            border-top: 1px solid var(--component-border-color);
         }
 
         :host > textarea {
             flex-grow: 1;
+            min-width: 0;
             vertical-align: middle;
-            padding-left: 5px;
-            rows: 1;
-            background-color: var(--component-background-color);
-            color: var(--component-foreground-color);
-            border: 1px solid white;
+            padding: var(--component-space-sm);
+            background-color: var(--component-surface-color);
+            color: var(--component-foreground-color-text);
+            border: 1px solid var(--component-border-color);
             resize: none;
-            border-radius: 3px;
+            border-radius: var(--component-radius);
+            font-family: inherit;
+            font-size: inherit;
+            line-height: 1.4;
         }
 
         :host > textarea::placeholder {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translate(0, -50%);
-            padding-left: 5px;
             color: var(--component-foreground-color-textarea-disabled);
         }
 
-        :host > * {
-            margin: 5px 0;
-            font-size: var(--component-base-font-size);
+        :host > textarea:focus-visible {
+            outline: 2px solid var(--component-focus-ring);
+            outline-offset: 1px;
+            border-color: var(--component-focus-ring);
         }
 
         :host > button {
             background-color: var(--component-background-color-button);
             color: var(--component-foreground-color-button);
             text-decoration: none;
-            border-radius: 3px;
+            border-radius: var(--component-radius);
             border: none;
+            padding: var(--component-space-sm) var(--component-space-md);
+            font-size: inherit;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.05s ease;
+            white-space: nowrap;
+        }
+
+        :host > button:hover:not(:disabled) {
+            background-color: var(--component-background-color-button-hover);
+        }
+
+        :host > button:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        :host > button:focus-visible {
+            outline: 2px solid var(--component-focus-ring);
+            outline-offset: 2px;
         }
 
         :host > button:disabled {
             background-color: var(--component-background-color-disabled);
-            color: var(--component-foreground-color-disabled)
+            color: var(--component-foreground-color-disabled);
+            cursor: not-allowed;
         }
 
         :host > textarea:disabled {
-            background-color: var(--component-background-color);
-            color: var(--component-foreground-color-textarea-disabled)
+            background-color: var(--component-background-color-disabled);
+            color: var(--component-foreground-color-textarea-disabled);
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            :host {
+                flex-wrap: wrap;
+            }
         }
     `
 
@@ -121,44 +147,20 @@ class SendReceiveSerialControls extends LitElement {
         "dec": "",
         "hex": "0x"
     }
-    private readBuffer:number[] = [];
-    private byteInterpreter:any = {
-        "string": (value:number) => {
-            let strValue = String.fromCharCode(value);
-            if (strValue == "\r") return // Ignore carrige return
-            if (strValue == "\n"){
-                this.serialReadBufferPrintLn();
-            } else {
-                this.serialReadBufferPrint(strValue);
-            }
-        },
-        "byte": (value:number) => {
-            this.serialReadBufferPrint(this.radixPrefix[this.config.getDisplayType()] + value.toString(this.radixMap[this.config.getDisplayType()]));
-            this.serialReadBufferPrintLn();
-        },
-        "int": (value:number) => {  // Javascript uses 32 bit integers, Arduino 16 bit integers => padding required
-            this.readBuffer.push(value);
-            if (this.readBuffer.length >= 2){
-                let bytes = this.readBuffer;
-                this.readBuffer = [];
-                let sign = bytes[0] & (1 << 7);
-                let combined = ((bytes[0] & 0xFF) << 8) | (bytes[1] & 0xFF);
-                combined = sign ? 0xFFFF0000 & combined : combined;  // Add ones to beginning for sign in two complement representation
-                this.serialReadBufferPrint(combined.toString(this.radixMap[this.config.getDisplayType()]))
-                this.serialReadBufferPrintLn();
-            }
-        },
-        "long": (value:number) => {
-            this.readBuffer.push(value);
-            if (this.readBuffer.length >= 4){
-                let bytes = this.readBuffer;
-                this.readBuffer = [];
-                let combined = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
-                this.serialReadBufferPrint(combined.toString(this.radixMap[this.config.getDisplayType()]));
-                this.serialReadBufferPrintLn();
-            } 
-        }
-    }
+
+    // Maximum number of lines retained in memory (bounds memory + CSV export size).
+    private static readonly MAX_LOG_LINES = 50000;
+    // Maximum number of lines/points forwarded to the view per flush (bounds DOM/chart work).
+    private static readonly MAX_VIEW_LINES = 2000;
+    private flushScheduled = false;
+
+    // Turns the raw incoming byte stream into log lines according to the current data/display type.
+    private interpreter: SerialDataInterpreter = new SerialDataInterpreter(
+        () => this.config.getDataType(),
+        () => this.config.getDisplayType(),
+        (value: string) => this.serialReadBufferPrint(value),
+        () => this.serialReadBufferPrintLn()
+    );
 
     serialConnection: WebSerialConnection
 
@@ -175,7 +177,7 @@ class SendReceiveSerialControls extends LitElement {
 
         this.serialConnection.addSerialDisconnectEventHandler(() => this.handleDisconnect());
         this.serialConnection.addSerialConnectEventHandler(() => this.handleConnect())
-        this.serialConnection.addSerialDataEventHandler((byte: number) => this.handleReceiveData(byte))
+        this.serialConnection.addSerialChunkEventHandler((chunk: Uint8Array) => this.handleReceiveChunk(chunk))
         this.serialConnection.setupWebSerial()
     }
 
@@ -202,6 +204,7 @@ class SendReceiveSerialControls extends LitElement {
             this.downloadPossible = false
             this.textInputPossible = true
             this.datalog = new Array<string>()
+            this.interpreter.reset()
             this.currentState =  ConnectionState.CON
         } else {
             console.error("Trying to connect but already connected?!?")
@@ -209,6 +212,7 @@ class SendReceiveSerialControls extends LitElement {
     }
 
     private handleDisconnect(){
+        this.interpreter.reset()
         if (this.currentState === ConnectionState.CON){
             this.connectPossible = true
             this.disconnectPossible = false
@@ -229,21 +233,41 @@ class SendReceiveSerialControls extends LitElement {
         }
     }
 
-    handleReceiveData(byte:number){
+    handleReceiveChunk(chunk: Uint8Array){
         if (this.currentState === ConnectionState.CON || this.currentState === ConnectionState.CON_DATA){
             this.downloadPossible = true
-            this.processData(byte)
+            for (let i = 0; i < chunk.length; i++){
+                this.processData(chunk[i])
+            }
             this.currentState = ConnectionState.CON_DATA
-            let e = new CustomEvent("new-data-received", {bubbles: false, composed: true, detail: {data: this.datalog }})
-            this.dispatchEvent(e)
+            // Coalesce UI updates: dispatch at most once per animation frame regardless of
+            // how many bytes/chunks arrive, so the main thread is not overwhelmed at high baud rates.
+            this.scheduleDataFlush()
         } else {
             console.error("Received data in disconnected state?!?")
         }
     }
 
-    private processData(byte:number): string{
-        this.byteInterpreter[this.config.getDataType()](byte);
-        return ""
+    private scheduleDataFlush(){
+        if (this.flushScheduled){
+            return
+        }
+        this.flushScheduled = true
+        requestAnimationFrame(() => {
+            this.flushScheduled = false
+            // Trim the in-memory log to bound memory usage during long sessions.
+            if (this.datalog.length > SendReceiveSerialControls.MAX_LOG_LINES){
+                this.datalog = this.datalog.slice(-SendReceiveSerialControls.MAX_LOG_LINES)
+            }
+            // Only forward a bounded slice to the view to keep DOM/chart work bounded.
+            const view = this.datalog.slice(-SendReceiveSerialControls.MAX_VIEW_LINES)
+            const e = new CustomEvent("new-data-received", {bubbles: false, composed: true, detail: {data: view }})
+            this.dispatchEvent(e)
+        })
+    }
+
+    private processData(byte:number): void {
+        this.interpreter.interpret(byte);
     }
 
     private handleSend(){
@@ -255,7 +279,7 @@ class SendReceiveSerialControls extends LitElement {
         let valueArray:number[] = [];
         if (this.config.getDataType() == "byte"){ // When sending bytes check if input is in byte format => send as byte
             let parsedValue = parseInt(value, this.radixMap[this.config.getDisplayType()]);
-            if (!Number.isNaN(parsedValue) && parsedValue >= -128 && parsedValue <= 256 ){
+            if (!Number.isNaN(parsedValue) && parsedValue >= -128 && parsedValue <= 255 ){
                 valueArray.push(parsedValue);
             } else {  // If it does not fit in the byte format => send as array of characters
                 valueArray = value.split("").map((str) => { return str.charCodeAt(0)});
@@ -294,7 +318,7 @@ class SendReceiveSerialControls extends LitElement {
             <button @click=${() => this.serialConnection.disconnect() } ?disabled=${!this.disconnectPossible}>${msg("Disconnect")}</button>
             <textarea ?disabled=${!this.textInputPossible} rows="1" @input=${(e:any) => { this.handleInput(e.target.value) }} .value=${this.inputData} placeholder="${msg("Enter the data you want to send to the device!")}"></textarea>
             <button @click=${ this.handleSend } ?disabled=${!this.sendPossible}>${msg("Send")}</button>
-            <button @click=${this.handleDownload } class="fas fa-download" ?disabled=${!this.downloadPossible}>${msg("Download csv")}</button>
+            <button @click=${this.handleDownload } class="fas fa-download" aria-label=${msg("Download csv")} ?disabled=${!this.downloadPossible}>${msg("Download csv")}</button>
         `
     }
 

@@ -18,24 +18,25 @@ class MonitorMenubar extends LitElement {
         :host {
             display: flex;
             flex-direction: row;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: flex-start;
-            gap: 5px;
+            gap: var(--component-space-sm);
             width: 100%;
             background-color: var(--component-background-color);
             color: var(--component-foreground-color);
-            padding: 0 5px;
+            padding: var(--component-space-sm);
             box-sizing: border-box;
             font-size: var(--component-base-font-size);
             font-family: var(--component-base-font-family);
-            border-bottom: 1px solid;
-            border-color: var(--component-accent-color);
+            border-bottom: 1px solid var(--component-border-color);
         }
 
         :host > span {
             flex-grow: 1;
+            min-width: max-content;
             text-align: left;
+            font-weight: 600;
         }
     `
 

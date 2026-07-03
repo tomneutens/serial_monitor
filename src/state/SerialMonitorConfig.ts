@@ -4,7 +4,7 @@
 
 
 import {msg} from "@lit/localize"
-import InvalidArugmentError from "../errors/InvalidArgumentError"
+import InvalidArgumentError from "../errors/InvalidArgumentError"
 
 
 enum SerialMonitorSetting {
@@ -94,8 +94,13 @@ class SerialMonitorConfig {
         return this.baudRate[this.selectionIndex[SerialMonitorSetting.BAUD_RATE]].labelValue;
     }
 
-    getOutpuView(): ViewSetting{
+    getOutputView(): ViewSetting{
         return this.outputView[this.selectionIndex[SerialMonitorSetting.VIEW]].labelValue
+    }
+
+    /** @deprecated Misspelled alias kept for backward compatibility. Use getOutputView(). */
+    getOutpuView(): ViewSetting{
+        return this.getOutputView()
     }
 
     getSerialPortFilters(): SerialPortFilter[]{
@@ -107,7 +112,7 @@ class SerialMonitorConfig {
         if (values.includes(value)){
             this.selectionIndex[setting] = values.indexOf(value);
         } else {
-            throw new InvalidArugmentError("Not a valid setting", `one of ${JSON.stringify(this.settingsOptions)}`)
+            throw new InvalidArgumentError("Not a valid setting", `one of ${JSON.stringify(this.settingsOptions)}`)
         }
     }
 

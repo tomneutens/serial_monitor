@@ -55,6 +55,8 @@ declare class SerialMonitorConfig {
     getDisplayType(): DisplayTypeSetting;
     getDataType(): DataTypeSetting;
     getBaudRate(): BaudRateSetting;
+    getOutputView(): ViewSetting;
+    /** @deprecated Misspelled alias kept for backward compatibility. Use getOutputView(). */
     getOutpuView(): ViewSetting;
     getSerialPortFilters(): SerialPortFilter[];
     setSetting(setting: SerialMonitorSetting, value: string): void;

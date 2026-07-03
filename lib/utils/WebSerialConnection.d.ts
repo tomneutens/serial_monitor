@@ -7,15 +7,23 @@ declare class WebSerialConnection {
     private openPort;
     private serialConnected;
     private serialDataEventHandlers;
+    private serialChunkEventHandlers;
     private serialDisconnectEventHandlers;
     private serialConnectEventHandlers;
     private sendQueue;
     constructor();
     addSerialDataEventHandler(handler: Function): void;
+    /**
+     * Register a handler that receives raw data one chunk (Uint8Array) at a time.
+     * Preferred over the byte-level handler for high data rates because it avoids
+     * per-byte callback overhead.
+     */
+    addSerialChunkEventHandler(handler: Function): void;
     addSerialDisconnectEventHandler(handler: Function): void;
     addSerialConnectEventHandler(handler: Function): void;
     sendByte(byte: number): void;
     private notifyDataHandlers;
+    private notifyChunkHandlers;
     private notifyConnectHandlers;
     private notifyDisconnectHandlers;
     private hasWebSerialSupport;

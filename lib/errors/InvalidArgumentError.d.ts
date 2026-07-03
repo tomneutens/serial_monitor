@@ -1,8 +1,9 @@
 /**
  * @author Tom Neutens <tomneutens@gmail.com>
  */
-declare class InvalidArugmentError extends Error {
+declare class InvalidArgumentError extends Error {
     constructor(argumentName: string, expectedFormat: string);
 }
-export default InvalidArugmentError;
+export default InvalidArgumentError;
+export { InvalidArgumentError };
 //# sourceMappingURL=InvalidArgumentError.d.ts.map

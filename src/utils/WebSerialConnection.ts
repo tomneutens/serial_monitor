@@ -10,6 +10,7 @@ class WebSerialConnection {
     private openPort: SerialPort|null
     private serialConnected: boolean
     private serialDataEventHandlers: Array<Function>
+    private serialChunkEventHandlers: Array<Function>
     private serialDisconnectEventHandlers: Array<Function>
     private serialConnectEventHandlers: Array<Function>
     private sendQueue: Array<number>
@@ -19,6 +20,7 @@ class WebSerialConnection {
         this.serialConnected = false
         this.openPort = null
         this.serialDataEventHandlers = new Array<Function>()
+        this.serialChunkEventHandlers = new Array<Function>()
         this.serialDisconnectEventHandlers = new Array<Function>()
         this.serialConnectEventHandlers = new Array<Function>()
         this.sendQueue = new Array<number>()
@@ -26,6 +28,15 @@ class WebSerialConnection {
 
     addSerialDataEventHandler(handler: Function){
         this.serialDataEventHandlers.push(handler)
+    }
+
+    /**
+     * Register a handler that receives raw data one chunk (Uint8Array) at a time.
+     * Preferred over the byte-level handler for high data rates because it avoids
+     * per-byte callback overhead.
+     */
+    addSerialChunkEventHandler(handler: Function){
+        this.serialChunkEventHandlers.push(handler)
     }
 
     addSerialDisconnectEventHandler(handler: Function){
@@ -42,6 +53,10 @@ class WebSerialConnection {
 
     private notifyDataHandlers(data: number){
         this.serialDataEventHandlers.forEach(handler => handler(data))
+    }
+
+    private notifyChunkHandlers(data: Uint8Array){
+        this.serialChunkEventHandlers.forEach(handler => handler(data))
     }
 
     private notifyConnectHandlers(){
@@ -73,6 +88,7 @@ class WebSerialConnection {
         let stopped = false
         try {
             let port = await navigator.serial.requestPort({ filters: filters })
+            console.log(port)
             // asynchronously start listening to port
             port.open({baudRate: this.baudRate}).then(async () => {
                 this.notifyConnectHandlers()
@@ -91,12 +107,17 @@ class WebSerialConnection {
                             stopped = true;
                         }
                         if (value){
-                            value.forEach((element) => { this.notifyDataHandlers(element); });
+                            // Dispatch the whole chunk at once (fast path). Byte-level
+                            // handlers are only invoked when someone has registered one.
+                            this.notifyChunkHandlers(value);
+                            if (this.serialDataEventHandlers.length > 0){
+                                value.forEach((element) => { this.notifyDataHandlers(element); });
+                            }
                         }
                         
                         if (this.sendQueue.length > 0){
-                            let nextOnQueue = this.sendQueue.shift() as number
-                            let data = new Uint8Array([nextOnQueue]);
+                            // Drain the entire send queue in a single write instead of one byte per read cycle.
+                            let data = new Uint8Array(this.sendQueue.splice(0, this.sendQueue.length));
                             await writer.write(data);
                         }
                     }

@@ -11,7 +11,8 @@ import { SerialMonitorConfig } from "../state/SerialMonitorConfig";
 declare class SerialMonitor extends LitElement {
     static styles?: CSSResultGroup;
     monitorConfig: SerialMonitorConfig;
-    output: string;
+    outputLines: Array<string>;
+    chartData: Array<number>;
     serialPortFilters: SerialPortFilter[];
     constructor();
     attributeChangedCallback(name: string, _old: string, value: string): void;

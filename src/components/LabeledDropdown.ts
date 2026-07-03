@@ -9,26 +9,44 @@ import {customElement, property} from 'lit/decorators.js';
 class LabeledDropdown extends LitElement {
     static styles:CSSResult = css`
         :host {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--component-space-xs);
             color: var(--component-foreground-color);
             background-color: var(--component-background-color);
-            padding: 5px;
+            padding: var(--component-space-xs);
             font-size: var(--component-base-font-size);
             font-family: var(--component-base-font-family);
         }
 
+        span {
+            white-space: nowrap;
+        }
+
         select {
-            color: var(--component-foreground-color);
-            background-color: var(--component-background-color);
-            border: none;
-            border-color: var(--component-accent-color);
+            color: var(--component-foreground-color-text);
+            background-color: var(--component-surface-color);
+            border: 1px solid var(--component-border-color);
+            border-radius: var(--component-radius);
+            padding: var(--component-space-xs) var(--component-space-sm);
             font-size: inherit;
             font-family: inherit;
+            cursor: pointer;
+        }
+
+        select:hover {
+            border-color: var(--component-accent-color);
+        }
+
+        select:focus-visible {
+            outline: 2px solid var(--component-focus-ring);
+            outline-offset: 1px;
+            border-color: var(--component-focus-ring);
         }
 
         option {
-            color: var(--component-foreground-color);
-            background-color: var(--component-background-color);
-            border-color: var(--component-accent-color);
+            color: var(--component-foreground-color-text);
+            background-color: var(--component-surface-color);
         }
     `
     @property({
